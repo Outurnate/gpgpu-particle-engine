@@ -1,0 +1,11 @@
+language: cpp
+env:
+  matrix:
+  - BuildType=Debug
+  - BuildType=Release
+compiler:
+- clang
+- gcc
+before_script:
+- ./buildutils.sh
+script: cd build && ../cmake-2.8.11.2/build/bin/cmake -DCMAKE_BUILD_TYPE=$BuildType ../src && make && cppcheck -D__cplusplus --enable=all ../src
