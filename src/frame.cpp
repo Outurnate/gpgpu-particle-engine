@@ -61,29 +61,53 @@ void Frame::Init(cl::Context context, cl::Device device)
   GLint position = glGetAttribLocation(prog, "position");
   GLint color    = glGetAttribLocation(prog, "color");
 
-  GLfloat *particles = new GLfloat[num_particles * 5];
+  GLfloat *particlesv = new GLfloat[num_particles * 2];
   unsigned j = 0;
   for (unsigned i = 0; i < num_particles; ++i)
   {
-    particles[j++] = (float)i / num_particles;
-    particles[j++] = (float)i / num_particles;
-    particles[j++] = 0.0f;
-    particles[j++] = 1.0f;
-    particles[j++] = 0.0f;
+    particlesv[j++] = 0;
+    particlesv[j++] = 0;
+  }
+
+  GLfloat *particlesc = new GLfloat[num_particles * 3];
+  j = 0;
+  for (unsigned i = 0; i < num_particles; ++i)
+  {
+    particlesc[j++] = 0.0f;
+    particlesc[j++] = 1.0f;
+    particlesc[j++] = 0.0f;
+  }
+
+  float *particles_vel = new float[num_particles * 2];
+  j = 0;
+  for (unsigned i = 0; i < num_particles; ++i)
+  {
+    particlesc[j++] = 0.01f;
+    particlesc[j++] = 0.01f;
   }
 
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, num_particles * 5 * sizeof(GLfloat), particles, GL_STATIC_DRAW);
+  glGenBuffers(1, &vbov);
+  glBindBuffer(GL_ARRAY_BUFFER, vbov);
+  glBufferData(GL_ARRAY_BUFFER, num_particles * 2 * sizeof(GLfloat), particlesv, GL_DYNAMIC_DRAW);
   glEnableVertexAttribArray(position);
+  glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
+  glGenBuffers(1, &vboc);
+  glBindBuffer(GL_ARRAY_BUFFER, vboc);
+  glBufferData(GL_ARRAY_BUFFER, num_particles * 3 * sizeof(GLfloat), particlesc, GL_DYNAMIC_DRAW);
   glEnableVertexAttribArray(color);
-  glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
-  glVertexAttribPointer(color,    3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+  glVertexAttribPointer(color, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+
+  vbo.push_back(cl::BufferGL(context, CL_MEM_READ_WRITE, vbov));
+  vbo.push_back(cl::BufferGL(context, CL_MEM_READ_WRITE, vboc));
+  cl::Buffer veloBuffer(context, CL_MEM_READ_WRITE, num_particles, NULL);
 
   glBindFragDataLocation(prog, 0, "colorOut");
+
+  glFinish();
 
   cl::Program::Sources sources;
 
@@ -98,10 +122,29 @@ void Frame::Init(cl::Context context, cl::Device device)
     std::cerr << "CL build error: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl;
     exit(EXIT_FAILURE);
   }
+
+  queue = cl::CommandQueue(context, device);
+  std::cout << queue.enqueueWriteBuffer(veloBuffer, CL_TRUE, 0, num_particles * 2 * sizeof(float), particles_vel, NULL) << std::endl;
+  queue.finish();
+
+  k_particlePhysics = cl::Kernel(program, "particlePhysics");
+  k_particlePhysics.setArg(0, vbov);
+  k_particlePhysics.setArg(1, veloBuffer);
+  k_particlePhysics.setArg(2, vboc);
+  queue.finish();
 }
 
 void Frame::Render()
 {
+  glFinish();
+  return;
+  std::cout << queue.enqueueAcquireGLObjects(&vbo, NULL) << std::endl;
+  queue.finish();
+  std::cout << queue.enqueueNDRangeKernel(k_particlePhysics, cl::NullRange, cl::NDRange(num_particles), cl::NullRange, NULL) << std::endl;
+  queue.finish();
+  std::cout << queue.enqueueReleaseGLObjects(&vbo, NULL) << std::endl;
+  queue.finish();
+
   glClear(GL_COLOR_BUFFER_BIT);
 
   glBindTexture(GL_TEXTURE_2D, sprite);

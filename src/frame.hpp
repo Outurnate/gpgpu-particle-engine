@@ -27,7 +27,10 @@ class Frame
 {
 private:
   unsigned num_particles;
-  GLuint sprite, vbo, vao, prog;
+  GLuint sprite, vbov, vboc, vao, prog;
+  std::vector<cl::Memory> vbo;
+  cl::CommandQueue queue;
+  cl::Kernel k_particlePhysics;
 public:
   Frame();
   virtual ~Frame();
