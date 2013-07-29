@@ -19,14 +19,21 @@
 //-----------------------------------------------------------------------//
 #include "config.h"
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <CL/cl.hpp>
+
 class Frame
 {
 private:
+  unsigned num_particles;
+  GLuint sprite, vbo, vao, prog;
 public:
   Frame();
   virtual ~Frame();
 
-  void Init();
+  void Reshape(int width, int height);
+  void Init(cl::Context context, cl::Device device);
   void Render();
   void Destroy();
 };

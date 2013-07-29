@@ -17,18 +17,27 @@
 //-----------------------------------------------------------------------//
 #include "config.h"
 
-#include "frame.hpp"
-
 #include <iostream>
 #include <cstdio>
 #include <sstream>
+#include <GL/glew.h>
+#include <IL/il.h>
 #include <CL/cl.hpp>
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
+#include "frame.hpp"
+
+Frame *frame;
+
 static void error(int error, const char* description)
 {
   std::cout << "Error: " << error << ": " << description << std::endl;
+}
+
+static void windowReshape(GLFWwindow *window, int width, int height)
+{
+  frame->Reshape(width, height);
 }
 
 int main()
@@ -119,6 +128,7 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   std::cout << std::endl;
 
   GLFWwindow *window;
+  frame = new Frame();
 
   glfwSetErrorCallback(error);
   if (!glfwInit())
@@ -137,21 +147,40 @@ under certain conditions; type `show c' for details.\n" << std::endl;
 
   glfwMakeContextCurrent(window);
 
+  glfwSetWindowSizeCallback(window, windowReshape);
+
+  glewExperimental = GL_TRUE;
+  GLenum err = glewInit(); glGetError();
+  if (err != GLEW_OK)
+  {
+    std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+  }
+
+  if (ilGetInteger(IL_VERSION_NUM) < IL_VERSION)
+  {
+    glfwTerminate();
+    std::cerr << "Mismatched IL version" << std::endl;
+    return EXIT_FAILURE;
+  }
+  ilInit();
+
   cl_context_properties properties[] = clContextProp(window, platform);
 
   cl::Context context({ device }, properties);
 
-  printf("GL Version:\t%s\nVendor:\t\t%s\nRenderer:\t%s\n", glGetString(GL_VERSION), glGetString(GL_VENDOR), glGetString(GL_RENDERER));
-  Frame frame;
-  frame.Init();
+  glGetString(GL_VERSION);
+  glGetString(GL_VENDOR);
+  glGetString(GL_RENDERER);
+  printf("GL Version:\t%s\nVendor:\t\t%s\nRenderer:\t%s\nGLEW Version:\t%s\n\n\n", glGetString(GL_VERSION), glGetString(GL_VENDOR), glGetString(GL_RENDERER), glewGetString(GLEW_VERSION));
+  frame->Init(context, device);
 
   while (!glfwWindowShouldClose(window))
   {
-    frame.Render();
+    frame->Render();
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
-  frame.Destroy();
+  frame->Destroy();
 
   glfwTerminate();
   return EXIT_SUCCESS;
