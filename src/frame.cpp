@@ -21,10 +21,15 @@
 #include "particle_hex.hpp"
 
 #include <iostream>
+#include <ctime>
 
 Frame::Frame()
 {
-  num_particles = 10;
+  srand((unsigned)time(0));
+  num_particles = 10000;
+  mousePos.push_back(0.0f);
+  mousePos.push_back(0.0f);
+  mousePos.push_back(0.0f);
 }
 
 Frame::~Frame()
@@ -33,7 +38,20 @@ Frame::~Frame()
 
 void Frame::Reshape(int width, int height)
 {
+  this->width = width;
+  this->height = height;
   glViewport(0, 0, width, height);
+}
+
+void Frame::Mouse(float x, float y, float click)
+{
+  if (x != std::numeric_limits<float>::infinity())     mousePos[0] = -1.0f + ((x / width)  * 2.0f);
+  if (y != std::numeric_limits<float>::infinity())     mousePos[1] = (-1.0f + ((y / height) * 2.0f)) * -1;
+  if (click != std::numeric_limits<float>::infinity()) mousePos[2] = click;
+  queue.enqueueWriteBuffer(mouseBuffer, CL_TRUE, 0, 3 * sizeof(float), &mousePos[0]);
+  queue.finish();
+  k_particlePhysics.setArg(3, mouseBuffer);
+  queue.finish();
 }
 
 void Frame::Init(cl::Context context, cl::Device device)
@@ -43,7 +61,7 @@ void Frame::Init(cl::Context context, cl::Device device)
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glPointSize(8);
+  glPointSize(2);
 
   GLuint vert = makeShader(GL_VERTEX_SHADER,   1, { new std::string("media/shaders/particle.vert.glsl") });
   GLuint frag = makeShader(GL_FRAGMENT_SHADER, 1, { new std::string("media/shaders/particle.frag.glsl") });
@@ -65,25 +83,25 @@ void Frame::Init(cl::Context context, cl::Device device)
   unsigned j = 0;
   for (unsigned i = 0; i < num_particles; ++i)
   {
-    particlesv[j++] = 0;
-    particlesv[j++] = 0;
+    particlesv[j++] = ((float)rand() / ((float)RAND_MAX / 2)) - 1;
+    particlesv[j++] = ((float)rand() / ((float)RAND_MAX / 2)) - 1;
   }
 
   GLfloat *particlesc = new GLfloat[num_particles * 3];
   j = 0;
   for (unsigned i = 0; i < num_particles; ++i)
   {
-    particlesc[j++] = 0.0f;
     particlesc[j++] = 1.0f;
-    particlesc[j++] = 0.0f;
+    particlesc[j++] = 1.0f;
+    particlesc[j++] = 1.0f;
   }
 
-  float *particles_vel = new float[num_particles * 2];
+  particles_vel = new float[num_particles * 2];
   j = 0;
   for (unsigned i = 0; i < num_particles; ++i)
   {
-    particlesc[j++] = 0.01f;
-    particlesc[j++] = 0.01f;
+    particles_vel[j++] = 0.0f;
+    particles_vel[j++] = 0.0f;
   }
 
   glGenVertexArrays(1, &vao);
@@ -103,7 +121,8 @@ void Frame::Init(cl::Context context, cl::Device device)
 
   vbo.push_back(cl::BufferGL(context, CL_MEM_READ_WRITE, vbov));
   vbo.push_back(cl::BufferGL(context, CL_MEM_READ_WRITE, vboc));
-  cl::Buffer veloBuffer(context, CL_MEM_READ_WRITE, num_particles, NULL);
+  veloBuffer  = cl::Buffer(context, CL_MEM_READ_WRITE, 3 * sizeof(float) * num_particles);
+  mouseBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, 3 * sizeof(float));
 
   glBindFragDataLocation(prog, 0, "colorOut");
 
@@ -117,32 +136,36 @@ void Frame::Init(cl::Context context, cl::Device device)
 
   std::vector<cl::Device> devices;
   devices.push_back(device);
-  if (program.build(devices) != CL_SUCCESS)
+  try
+  {
+    program.build(devices);
+  }
+  catch(cl::Error)
   {
     std::cerr << "CL build error: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl;
     exit(EXIT_FAILURE);
   }
 
   queue = cl::CommandQueue(context, device);
-  std::cout << queue.enqueueWriteBuffer(veloBuffer, CL_TRUE, 0, num_particles * 2 * sizeof(float), particles_vel, NULL) << std::endl;
+  queue.enqueueWriteBuffer(veloBuffer,  CL_TRUE, 0, 2 * sizeof(float) * num_particles, particles_vel);
+  queue.enqueueWriteBuffer(mouseBuffer, CL_TRUE, 0, 3 * sizeof(float), &mousePos[0]);
   queue.finish();
 
   k_particlePhysics = cl::Kernel(program, "particlePhysics");
-  k_particlePhysics.setArg(0, vbov);
+  k_particlePhysics.setArg(0, vbo[0]);
   k_particlePhysics.setArg(1, veloBuffer);
-  k_particlePhysics.setArg(2, vboc);
+  k_particlePhysics.setArg(2, vbo[1]);
+  k_particlePhysics.setArg(3, mouseBuffer);
   queue.finish();
 }
 
 void Frame::Render()
 {
   glFinish();
-  return;
-  std::cout << queue.enqueueAcquireGLObjects(&vbo, NULL) << std::endl;
-  queue.finish();
-  std::cout << queue.enqueueNDRangeKernel(k_particlePhysics, cl::NullRange, cl::NDRange(num_particles), cl::NullRange, NULL) << std::endl;
-  queue.finish();
-  std::cout << queue.enqueueReleaseGLObjects(&vbo, NULL) << std::endl;
+
+  queue.enqueueAcquireGLObjects(&vbo);
+  queue.enqueueNDRangeKernel(k_particlePhysics, cl::NullRange, cl::NDRange(num_particles), cl::NullRange);
+  queue.enqueueReleaseGLObjects(&vbo);
   queue.finish();
 
   glClear(GL_COLOR_BUFFER_BIT);

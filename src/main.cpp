@@ -17,6 +17,7 @@
 //-----------------------------------------------------------------------//
 #include "config.h"
 
+#define __CL_ENABLE_EXCEPTIONS
 #include <iostream>
 #include <cstdio>
 #include <sstream>
@@ -25,6 +26,7 @@
 #include <CL/cl.hpp>
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+#include <limits>
 
 #include "frame.hpp"
 
@@ -40,7 +42,17 @@ static void windowReshape(GLFWwindow *window, int width, int height)
   frame->Reshape(width, height);
 }
 
-int main()
+static void cursorPos(GLFWwindow *window, double x, double y)
+{
+  frame->Mouse((float)x, (float)y, std::numeric_limits<float>::infinity());
+}
+
+static void cursorButton(GLFWwindow *window, int button, int action, int mods)
+{
+  frame->Mouse(std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) ? 1.0f : 0.0f);
+}
+
+inline int main_int()
 {
   std::cout <<
 "<program>  Copyright (C) <year>  <name of author>\n\
@@ -148,6 +160,8 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   glfwMakeContextCurrent(window);
 
   glfwSetWindowSizeCallback(window, windowReshape);
+  glfwSetCursorPosCallback(window, cursorPos);
+  glfwSetMouseButtonCallback(window, cursorButton);
 
   glewExperimental = GL_TRUE;
   GLenum err = glewInit(); glGetError();
@@ -184,4 +198,58 @@ under certain conditions; type `show c' for details.\n" << std::endl;
 
   glfwTerminate();
   return EXIT_SUCCESS;
+}
+
+int main()
+{
+  try
+  {
+    return main_int();
+  }
+  catch(cl::Error err)
+  {
+    std::cerr << "EXCEPTION: " << err.what() << "(";
+    switch(err.err())
+    {
+    case CL_INVALID_COMMAND_QUEUE:
+      std::cerr << "CL_INVALID_COMMAND_QUEUE";
+      break;
+    case CL_INVALID_CONTEXT:
+      std::cerr << "CL_INVALID_CONTEXT";
+      break;
+    case CL_INVALID_MEM_OBJECT:
+      std::cerr << "CL_INVALID_MEM_OBJECT";
+      break;
+    case CL_INVALID_VALUE:
+      std::cerr << "CL_INVALID_VALUE";
+      break;
+    case CL_INVALID_EVENT_WAIT_LIST:
+      std::cerr << "CL_INVALID_EVENT_WAIT_LIST";
+      break;
+    case CL_MEM_OBJECT_ALLOCATION_FAILURE:
+      std::cerr << "CL_MEM_OBJECT_ALLOCATION_FAILURE";
+      break;
+    case CL_OUT_OF_HOST_MEMORY:
+      std::cerr << "CL_OUT_OF_HOST_MEMORY";
+      break;
+    case CL_INVALID_KERNEL:
+      std::cerr << "CL_INVALID_KERNEL";
+      break;
+    case CL_INVALID_ARG_INDEX:
+      std::cerr << "CL_INVALID_ARG_INDEX";
+      break;
+    case CL_INVALID_ARG_VALUE:
+      std::cerr << "CL_INVALID_ARG_VALUE";
+      break;
+    case CL_INVALID_SAMPLER:
+      std::cerr << "CL_INVALID_SAMPLER";
+      break;
+    case CL_INVALID_ARG_SIZE:
+      std::cerr << "CL_INVALID_ARG_SIZE";
+      break;
+    default:
+      std::cerr << err.err();
+    }
+    std::cerr << ")" << std::endl;
+  }
 }

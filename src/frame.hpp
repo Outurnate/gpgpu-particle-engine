@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------//
 #include "config.h"
 
+#define __CL_ENABLE_EXCEPTIONS
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <CL/cl.hpp>
@@ -29,13 +30,18 @@ private:
   unsigned num_particles;
   GLuint sprite, vbov, vboc, vao, prog;
   std::vector<cl::Memory> vbo;
+  std::vector<float> mousePos;
   cl::CommandQueue queue;
   cl::Kernel k_particlePhysics;
+  cl::Buffer veloBuffer, mouseBuffer;
+  float *particles_vel;
+  int width, height;
 public:
   Frame();
   virtual ~Frame();
 
   void Reshape(int width, int height);
+  void Mouse(float x, float y, float click);
   void Init(cl::Context context, cl::Device device);
   void Render();
   void Destroy();
