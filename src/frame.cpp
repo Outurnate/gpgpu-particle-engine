@@ -26,7 +26,7 @@
 Frame::Frame()
 {
   srand((unsigned)time(0));
-  num_particles = 10000;
+  num_particles = 100000;
   mousePos.push_back(0.0f);
   mousePos.push_back(0.0f);
   mousePos.push_back(0.0f);
@@ -104,6 +104,11 @@ void Frame::Init(cl::Context context, cl::Device device)
     particles_vel[j++] = 0.0f;
   }
 
+  particles_mass = new float[num_particles];
+  j = 0;
+  for (unsigned i = 0; i < num_particles; ++i)
+    particles_mass[j++] = 1.0f + ((float)rand() / (float)RAND_MAX);
+
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
@@ -123,6 +128,7 @@ void Frame::Init(cl::Context context, cl::Device device)
   vbo.push_back(cl::BufferGL(context, CL_MEM_READ_WRITE, vboc));
   veloBuffer  = cl::Buffer(context, CL_MEM_READ_WRITE, 3 * sizeof(float) * num_particles);
   mouseBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, 3 * sizeof(float));
+  massBuffer  = cl::Buffer(context, CL_MEM_READ_WRITE, num_particles * sizeof(float));
 
   glBindFragDataLocation(prog, 0, "colorOut");
 
@@ -149,6 +155,7 @@ void Frame::Init(cl::Context context, cl::Device device)
   queue = cl::CommandQueue(context, device);
   queue.enqueueWriteBuffer(veloBuffer,  CL_TRUE, 0, 2 * sizeof(float) * num_particles, particles_vel);
   queue.enqueueWriteBuffer(mouseBuffer, CL_TRUE, 0, 3 * sizeof(float), &mousePos[0]);
+  queue.enqueueWriteBuffer(massBuffer,  CL_TRUE, 0,     sizeof(float) * num_particles, particles_mass);
   queue.finish();
 
   k_particlePhysics = cl::Kernel(program, "particlePhysics");
@@ -156,6 +163,7 @@ void Frame::Init(cl::Context context, cl::Device device)
   k_particlePhysics.setArg(1, veloBuffer);
   k_particlePhysics.setArg(2, vbo[1]);
   k_particlePhysics.setArg(3, mouseBuffer);
+  k_particlePhysics.setArg(4, massBuffer);
   queue.finish();
 }
 

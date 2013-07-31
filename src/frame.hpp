@@ -33,8 +33,8 @@ private:
   std::vector<float> mousePos;
   cl::CommandQueue queue;
   cl::Kernel k_particlePhysics;
-  cl::Buffer veloBuffer, mouseBuffer;
-  float *particles_vel;
+  cl::Buffer veloBuffer, mouseBuffer, massBuffer;
+  float *particles_vel, *particles_mass;
   int width, height;
 public:
   Frame();
