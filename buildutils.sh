@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo apt-add-repository -y ppa:ubuntu-sdk-team/ppa
 sudo apt-get update
-sudo apt-get install cmake libglew-dev libglm-dev x11proto-xf86vidmode-dev xorg-dev libdevil-dev build-essential cppcheck
+sudo apt-get install cmake libglew-dev libglm-dev x11proto-xf86vidmode-dev xorg-dev libdevil-dev build-essential cppcheck nvidia-opencl-dev
 curl -L http://sourceforge.net/projects/glfw/files/glfw/3.0.1/glfw-3.0.1.zip/download -o glfw-3.0.1.zip
 unzip glfw-3.0.1.zip
 cd glfw-3.0.1
