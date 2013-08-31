@@ -41,7 +41,8 @@ public:
   virtual ~Frame();
 
   void Reshape(int width, int height);
-  void Mouse(float x, float y, float click);
+  void MouseMove(float x, float y);
+  void MouseClick(float click);
   void Init(cl::Context context, cl::Device device);
   void Render();
   void Destroy();
