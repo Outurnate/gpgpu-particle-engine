@@ -11,3 +11,4 @@
 .#*~
 build
 media/textures/*.xcf
+src/config.hpp
