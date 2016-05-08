@@ -1,0 +1,13 @@
+*.slo
+*.lo
+*.o
+*.so
+*.dylib
+*.lai
+*.la
+*.a
+#*#
+*~
+.#*~
+build
+media/textures/*.xcf
