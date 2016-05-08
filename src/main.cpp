@@ -44,12 +44,12 @@ static void windowReshape(GLFWwindow *window, int width, int height)
 
 static void cursorPos(GLFWwindow *window, double x, double y)
 {
-  frame->Mouse((float)x, (float)y, std::numeric_limits<float>::infinity());
+  frame->MouseMove((float)x, (float)y);
 }
 
 static void cursorButton(GLFWwindow *window, int button, int action, int mods)
 {
-  frame->Mouse(std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) ? 1.0f : 0.0f);
+  frame->MouseClick((button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) ? 1.0f : 0.0f);
 }
 
 inline int main_int()
@@ -151,7 +151,7 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
-  if (!(window = glfwCreateWindow(800, 600, "GPU Particles", NULL, NULL)))
+  if (!(window = glfwCreateWindow(64, 64, "GPU Particles", NULL, NULL)))
   {
     glfwTerminate();
     return EXIT_FAILURE;

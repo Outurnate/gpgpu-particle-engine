@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="CMakeLists_8txt">
+    <title>CMakeLists.txt File Reference</title>
+        <section>
+            <title>Functions</title>
+            <para>
+                <itemizedlist>
+                    <listitem>
+                        <para> <link linkend="CMakeLists_8txt_1a8a96fb0d9d558f71c898d45bdc744a33">SET</link> (
+CMAKE_VERBOSE_MAKEFILE 0)</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </section>
+    <simplesect>
+        <title>Detailed Description</title>
+    <para>Definition in file /home/joseph/workspace/default/CMakeLists.txt</para>
+    </simplesect>
+</section>

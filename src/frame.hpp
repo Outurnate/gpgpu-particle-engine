@@ -17,7 +17,7 @@
 //You should have received a copy of the GNU General Public License      //
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.  //
 //-----------------------------------------------------------------------//
-#include "config.h"
+#include "config.hpp"
 
 #define __CL_ENABLE_EXCEPTIONS
 #include <GL/glew.h>
@@ -41,7 +41,8 @@ public:
   virtual ~Frame();
 
   void Reshape(int width, int height);
-  void Mouse(float x, float y, float click);
+  void MouseMove(float x, float y);
+  void MouseClick(float click);
   void Init(cl::Context context, cl::Device device);
   void Render();
   void Destroy();
