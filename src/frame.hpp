@@ -24,28 +24,77 @@
 #include <GL/gl.h>
 #include <CL/cl.hpp>
 
+#include <array>
+
+class ParticleShaders
+{
+public:
+  ParticleShaders();
+  ~ParticleShaders();
+
+  GLint pointsprite, position, color;
+  GLuint sprite, prog, vert, frag;
+};
+
+class ParticleSystem;
+
+class ParticleKernel
+{
+public:
+  ParticleKernel(cl::Context context, cl::Device device);
+
+  cl::Context& GetContext();
+  cl::CommandQueue& GetQueue();
+  void RunSystem(const ParticleSystem& ps);
+private:
+  cl::CommandQueue queue;
+  cl::Context& context;
+  cl::Kernel kernel;
+};
+
+class ParticleSystem
+{
+  friend class ParticleKernel;
+public:
+  ParticleSystem(ParticleKernel kernel, ParticleShaders shader, size_t forceCount, uint32_t particleCount, float r, float g, float b);
+  ~ParticleSystem();
+
+  void UpdateForce(size_t i, float x, float y, float power);
+  void FlushCL();
+  void Render();
+private:
+  float r, g, b;
+  uint32_t particleCount;
+  size_t forceCount;
+  std::vector<float> forces;
+  
+  cl::Buffer velocityBuffer;
+  cl::Buffer massBuffer;
+  cl::Buffer forceBuffer;
+  cl::Memory clVBO;
+
+  ParticleKernel& kernel;
+  ParticleShaders& shaders;
+
+  GLuint vertexArray;
+  GLuint vertexVBO;
+  GLuint colorVBO;
+};
+
 class Frame
 {
 private:
-  unsigned num_particles;
-  GLuint sprite, vbov, vboc, vao, prog;
-  std::vector<cl::Memory> vbo;
-  std::vector<float> mousePos;
-  cl::CommandQueue queue;
-  cl::Kernel k_particlePhysics;
-  cl::Buffer veloBuffer, mouseBuffer, massBuffer;
-  float *particles_vel, *particles_mass;
+  std::array<float, 3> mousePos;
+  
   int width, height;
+  ParticleSystem ps;
 public:
-  Frame();
-  virtual ~Frame();
+  Frame(cl::Context context, cl::Device device);
 
   void Reshape(int width, int height);
   void MouseMove(float x, float y);
   void MouseClick(float click);
-  void Init(cl::Context context, cl::Device device);
   void Render();
-  void Destroy();
 };
 
 #endif

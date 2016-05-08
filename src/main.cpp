@@ -140,7 +140,6 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   std::cout << std::endl;
 
   GLFWwindow *window;
-  frame = new Frame();
 
   glfwSetErrorCallback(error);
   if (!glfwInit())
@@ -186,7 +185,7 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   glGetString(GL_VENDOR);
   glGetString(GL_RENDERER);
   printf("GL Version:\t%s\nVendor:\t\t%s\nRenderer:\t%s\nGLEW Version:\t%s\n\n\n", glGetString(GL_VERSION), glGetString(GL_VENDOR), glGetString(GL_RENDERER), glewGetString(GLEW_VERSION));
-  frame->Init(context, device);
+  frame = new Frame(context, device);
 
   while (!glfwWindowShouldClose(window))
   {
@@ -194,7 +193,7 @@ under certain conditions; type `show c' for details.\n" << std::endl;
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
-  frame->Destroy();
+  delete frame;
 
   glfwTerminate();
   return EXIT_SUCCESS;
