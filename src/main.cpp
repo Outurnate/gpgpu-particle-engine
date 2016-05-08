@@ -151,7 +151,7 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
-  if (!(window = glfwCreateWindow(64, 64, "GPU Particles", NULL, NULL)))
+  if (!(window = glfwCreateWindow(1920, 1080, "GPU Particles", NULL, NULL)))
   {
     glfwTerminate();
     return EXIT_FAILURE;

@@ -26,7 +26,7 @@
 Frame::Frame()
 {
   srand((unsigned)time(0));
-  num_particles = 2000000;
+  num_particles = 1000000;
   mousePos.push_back(0.0f);
   mousePos.push_back(0.0f);
   mousePos.push_back(0.0f);
@@ -201,22 +201,6 @@ void Frame::Render()
   glUseProgram(prog);
   glBindVertexArray(vao);
   glDrawArrays(GL_POINTS, 0, num_particles);
-
-/*  char* pixels = new char[3 * width * height];
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-  std::stringstream namestr;
-  namestr << std::setfill('0') << std::setw(6) << ++num << ".png";
-
-/*  ILuint id = ilGenImage();
-  ilBindImage(id);
-  ilTexImage(width, height, 0, 3, IL_RGB, IL_UNSIGNED_BYTE, pixels);
-  ilEnable(IL_FILE_OVERWRITE);
-  ilSaveImage(namestr.str().c_str());
-  ilDeleteImage(id);
-
-  delete[] pixels;*/
 }
 
 void Frame::Destroy()
