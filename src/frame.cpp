@@ -23,8 +23,8 @@
 #include <iomanip>
 #include <ctime>
 
-Frame::Frame(cl::Context context, cl::Device device)
-  : ps(ParticleKernel(context, device), ParticleShaders(), 1, 1000000, 20.0f / 255.0f, 20.0f / 255.0f, 5.0f / 255.0f)
+Frame::Frame(ParticleShaders& shaders, cl::Context context, cl::Device device)
+  : ps(context, device, shaders)
 {
   srand((unsigned)time(0));
   glDisable(GL_DEPTH_TEST);
@@ -42,19 +42,16 @@ void Frame::Reshape(int width, int height)
 
 void Frame::MouseMove(float x, float y)
 {
-  ps.UpdateForce(0,
-                 -1.0f + ((x / width)  * 2.0f),
-                 (-1.0f + ((y / height) * 2.0f)) * -1,
-                 -1.0f); // TODO
+  ps.UpdateForceLocation(0,
+                          -1.0f + ((x / width)  * 2.0f),
+                         (-1.0f + ((y / height) * 2.0f)) * -1);
   ps.FlushCL();
 }
 
 void Frame::MouseClick(float click)
 {
-  ps.UpdateForce(0,
-                 0.0f, // TODO
-                 0.0f, // TODO
-                 click);
+  ps.UpdateForcePower(0,
+                      click);
   ps.FlushCL();
 }
 
@@ -63,9 +60,9 @@ static int num = 0;
 void Frame::Render()
 {
   glFinish();
-
-  ps.Render();
-
+  
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  ps.Render();
 }

@@ -185,7 +185,8 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   glGetString(GL_VENDOR);
   glGetString(GL_RENDERER);
   printf("GL Version:\t%s\nVendor:\t\t%s\nRenderer:\t%s\nGLEW Version:\t%s\n\n\n", glGetString(GL_VERSION), glGetString(GL_VENDOR), glGetString(GL_RENDERER), glewGetString(GLEW_VERSION));
-  frame = new Frame(context, device);
+  ParticleShaders shaders;
+  frame = new Frame(shaders, context, device);
 
   while (!glfwWindowShouldClose(window))
   {
@@ -201,11 +202,11 @@ under certain conditions; type `show c' for details.\n" << std::endl;
 
 int main()
 {
-  try
-  {
+//  try
+//  {
     return main_int();
-  }
-  catch(cl::Error err)
+//  }
+/*  catch(cl::Error err)
   {
     std::cerr << "EXCEPTION: " << err.what() << "(";
     switch(err.err())
@@ -250,5 +251,5 @@ int main()
       std::cerr << err.err();
     }
     std::cerr << ")" << std::endl;
-  }
+    }*/
 }

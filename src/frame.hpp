@@ -36,49 +36,47 @@ public:
   GLuint sprite, prog, vert, frag;
 };
 
-class ParticleSystem;
-
-class ParticleKernel
+class ParticleSet
 {
 public:
-  ParticleKernel(cl::Context context, cl::Device device);
-
-  cl::Context& GetContext();
-  cl::CommandQueue& GetQueue();
-  void RunSystem(const ParticleSystem& ps);
-private:
-  cl::CommandQueue queue;
-  cl::Context& context;
-  cl::Kernel kernel;
-};
-
-class ParticleSystem
-{
-  friend class ParticleKernel;
-public:
-  ParticleSystem(ParticleKernel kernel, ParticleShaders shader, size_t forceCount, uint32_t particleCount, float r, float g, float b);
-  ~ParticleSystem();
-
-  void UpdateForce(size_t i, float x, float y, float power);
-  void FlushCL();
-  void Render();
-private:
+  ParticleSet(size_t forceCount, uint32_t particleCount, float r, float g, float b);
+  ~ParticleSet();
+private:public:
   float r, g, b;
   uint32_t particleCount;
   size_t forceCount;
-  std::vector<float> forces;
   
   cl::Buffer velocityBuffer;
   cl::Buffer massBuffer;
   cl::Buffer forceBuffer;
-  cl::Memory clVBO;
+  std::vector<cl::Memory> clVBO;
 
-  ParticleKernel& kernel;
-  ParticleShaders& shaders;
-
+  GLfloat* particlesv;
+  GLfloat* particlesc;
+  float* particles_vel;
+  float* particles_mass;
+  float* forces;
+  
   GLuint vertexArray;
   GLuint vertexVBO;
   GLuint colorVBO;
+};
+
+class ParticleSystem
+{
+public:
+  ParticleSystem(cl::Context& context, cl::Device& device, ParticleShaders& shader);
+
+  void UpdateForcePower(size_t i, float power);
+  void UpdateForceLocation(size_t i, float x, float y);
+  void FlushCL();
+  void Render();
+private:
+  cl::CommandQueue queue;
+  cl::Context& context;
+  cl::Kernel kernel;
+  ParticleSet set;
+  ParticleShaders& shader;
 };
 
 class Frame
@@ -89,7 +87,7 @@ private:
   int width, height;
   ParticleSystem ps;
 public:
-  Frame(cl::Context context, cl::Device device);
+  Frame(ParticleShaders& shaders, cl::Context context, cl::Device device);
 
   void Reshape(int width, int height);
   void MouseMove(float x, float y);
