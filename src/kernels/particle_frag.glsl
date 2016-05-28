@@ -1,3 +1,4 @@
+R"(
 #version 420 core
 
 in vec3 ocolor;
@@ -9,3 +10,4 @@ void main()
   vec4 texCol = texture(pointsprite, gl_PointCoord);
   colorOut = vec4(texCol.rgb * vec4(ocolor, 1.0).rgb, texCol.a);
 }
+)"

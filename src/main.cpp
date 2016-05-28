@@ -185,8 +185,7 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   glGetString(GL_VENDOR);
   glGetString(GL_RENDERER);
   printf("GL Version:\t%s\nVendor:\t\t%s\nRenderer:\t%s\nGLEW Version:\t%s\n\n\n", glGetString(GL_VERSION), glGetString(GL_VENDOR), glGetString(GL_RENDERER), glewGetString(GLEW_VERSION));
-  ParticleShader shaders;
-  frame = new Frame(shaders, context, device);
+  frame = new Frame(context, device);
 
   while (!glfwWindowShouldClose(window))
   {

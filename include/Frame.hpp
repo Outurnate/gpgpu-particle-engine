@@ -26,24 +26,28 @@
 
 #include <boost/noncopyable.hpp>
 #include <array>
-#include <memory>
-
-#include "ParticleSystem.hpp"
 
 class Frame
 {
-private:
-  std::array<float, 3> mousePos;
-  
-  int width, height;
-  ParticleSystem ps;
 public:
-  Frame(cl::Context context, cl::Device device);
+  Frame(cl::Context& context, cl::Device& device);
+  ~Frame();
 
   void Reshape(int width, int height);
   void MouseMove(float x, float y);
   void MouseClick(float click);
   void Render();
+private:
+  std::array<float, 3> mousePos;
+  
+  int width, height;
+  
+  unsigned num_particles;
+  GLuint sprite, vbov, vboc, vao, prog;
+  std::vector<cl::Memory> vbo;
+  cl::CommandQueue queue;
+  cl::Kernel k_particlePhysics;
+  cl::Buffer veloBuffer, mouseBuffer, massBuffer;
 };
 
 #endif
