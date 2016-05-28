@@ -1,33 +1,37 @@
-#include "frame.hpp"
+#include "ParticleShaders.hpp"
+
+#include <fstream>
+#include <sstream>
 
 #include "util.hpp"
 
-ParticleShaders::ParticleShaders()
+using namespace std;
+
+const char* readToEnd(const string& path)
 {
-  sprite = loadTexture("media/textures/particle.png", true);
+  ifstream file(path);
+  ostringstream ss;
+  ss << file.rdbuf();
 
-  vert = makeShader(GL_VERTEX_SHADER,   1, { new std::string("media/shaders/particle.vert.glsl") });
-  frag = makeShader(GL_FRAGMENT_SHADER, 1, { new std::string("media/shaders/particle.frag.glsl") });
+  return ss.str().c_str();
+}
 
-  prog = makeProgram(vert, frag);
+ParticleShader::ParticleShader()
+  : GLShaderProgram(readToEnd("media/shaders/particle.vert.glsl"), readToEnd("media/shaders/particle.frag.glsl"))
+{
+  glUseProgram(ptr);
 
-  glUseProgram(prog);
-
-  pointsprite = glGetUniformLocation(prog, "pointsprite");
-
-  glUniform1i(pointsprite, 0);
-  glActiveTexture(GL_TEXTURE0 + 0);
-  glBindTexture(GL_TEXTURE_2D, sprite);
-
-  position = glGetAttribLocation(prog, "position");
-  color    = glGetAttribLocation(prog, "color");
-
-  glBindFragDataLocation(prog, 0, "colorOut");
-
+  pointsprite = glGetUniformLocation(ptr, "pointsprite");
+  position = glGetAttribLocation(ptr, "position");
+  color    = glGetAttribLocation(ptr, "color");
+  glBindFragDataLocation(ptr, 0, "colorOut");
+  
   glFinish();
 }
 
-ParticleShaders::~ParticleShaders()
+void ParticleShader::SetPointSprite(const GLTexture& texture)
 {
-  glDeleteTextures(1, &sprite);
+  glUniform1i(pointsprite, 0);
+  glActiveTexture(GL_TEXTURE0 + 0);
+  texture.Bind();
 }

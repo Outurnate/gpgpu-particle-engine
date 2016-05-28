@@ -15,7 +15,7 @@
 //You should have received a copy of the GNU General Public License      //
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.  //
 //-----------------------------------------------------------------------//
-#include "frame.hpp"
+#include "Frame.hpp"
 
 #include "util.hpp"
 
@@ -23,8 +23,8 @@
 #include <iomanip>
 #include <ctime>
 
-Frame::Frame(ParticleShaders& shaders, cl::Context context, cl::Device device)
-  : ps(context, device, shaders)
+Frame::Frame(cl::Context context, cl::Device device)
+  : ps(context, device)
 {
   srand((unsigned)time(0));
   glDisable(GL_DEPTH_TEST);

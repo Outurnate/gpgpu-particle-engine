@@ -28,7 +28,7 @@
 #include <GLFW/glfw3native.h>
 #include <limits>
 
-#include "frame.hpp"
+#include "Frame.hpp"
 
 Frame *frame;
 
@@ -185,7 +185,7 @@ under certain conditions; type `show c' for details.\n" << std::endl;
   glGetString(GL_VENDOR);
   glGetString(GL_RENDERER);
   printf("GL Version:\t%s\nVendor:\t\t%s\nRenderer:\t%s\nGLEW Version:\t%s\n\n\n", glGetString(GL_VERSION), glGetString(GL_VENDOR), glGetString(GL_RENDERER), glewGetString(GLEW_VERSION));
-  ParticleShaders shaders;
+  ParticleShader shaders;
   frame = new Frame(shaders, context, device);
 
   while (!glfwWindowShouldClose(window))
